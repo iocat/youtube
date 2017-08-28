@@ -4,31 +4,46 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 )
 
-const (
-	Red   = "red"
-	White = "white"
-)
+type ProgessBarColor string
 
 const (
-	ControlsNotDisplay = iota
+	Red   ProgessBarColor = "red"
+	White ProgessBarColor = "white"
+)
+
+type ControlsMode int
+
+const (
+	// ControlsNotDisplay has the player controls not displayed in the player
+	ControlsNotDisplay ControlsMode = iota
+	// ControlsDisplayImmediately has the controls displayed immediately and
+	// the Flash player also loads immediately.
 	ControlsDisplayImmediately
+	// ControlsDisplayAfter has the controls displayed, and the Flash player
+	// loaded after the user initiates the video playback.
 	ControlsDisplayAfter
 )
 
 const (
+	// IvPolicyShown shows video's annotation
 	IvPolicyShown = iota + 1
 	_
+	// IvPolicyNotShown hides video's annotation
 	IvPolicyNotShown
 )
 
 type ListType string
 
 const (
-	ListTypePlaylist    ListType = "playlist"
-	ListTypeSearch      ListType = "search"
+	// ListTypePlaylist represents playlist
+	ListTypePlaylist ListType = "playlist"
+	// ListTypeSearch represents search list
+	ListTypeSearch ListType = "search"
+	// ListTypeUserUploads represents user uploads
 	ListTypeUserUploads ListType = "user_uploads"
 )
 
+// Quality represents the player video's quality
 type Quality string
 
 const (
@@ -40,6 +55,7 @@ const (
 	HighRes Quality = "highres"
 )
 
+//
 type PlayerStatus int
 
 const (
@@ -56,10 +72,10 @@ type EventType string
 const (
 	OnReady                 EventType = "onReady"
 	OnStateChange           EventType = "onStateChange"
-	OnPlaybackQualityChange           = "onPlaybackQualityChange"
-	OnPlaybackRateChange              = "onPlaybackRateChange"
-	OnError                           = "onError"
-	OnApiChange                       = "onApiChange"
+	OnPlaybackQualityChange EventType = "onPlaybackQualityChange"
+	OnPlaybackRateChange    EventType = "onPlaybackRateChange"
+	OnError                 EventType = "onError"
+	OnApiChange             EventType = "onApiChange"
 )
 
 type Event struct {
@@ -68,26 +84,30 @@ type Event struct {
 	Data   *js.Object `js:"data"`
 }
 
+// Player represents the Youtube Iframe player
 type Player struct {
 	*js.Object
 }
 
-type properties struct {
+// Properties represents a set of video properties feeded to NewPlayer(id, properties) call
+// to create the player
+type Properties struct {
 	*js.Object
-	Width        int               `js:"width"`
-	Height       int               `js:"height"`
-	VideoID      string            `js:"videoId"`
-	PlayerVars   *playerParameters `js:"playerVars"`
-	PlayerEvents *playerEvents     `js:"events"`
+	Width        int           `js:"width"`
+	Height       int           `js:"height"`
+	VideoID      string        `js:"videoId"`
+	PlayerVars   *playerParams `js:"playerVars"`
+	PlayerEvents *playerEvents `js:"events"`
 }
 
 func newObj() *js.Object {
 	return js.Global.Get("Object").New()
 }
 
-func NewProperties() *properties {
-	props := &properties{Object: newObj()}
-	vars := &playerParameters{Object: newObj()}
+// NewProperties creates a new Property JS object
+func NewProperties() *Properties {
+	props := &Properties{Object: newObj()}
+	vars := &playerParams{Object: newObj()}
 	eves := &playerEvents{Object: newObj()}
 	props.PlayerVars = vars
 	props.PlayerEvents = eves
@@ -96,37 +116,43 @@ func NewProperties() *properties {
 
 type playerEvents struct {
 	*js.Object
-	OnReady       func(*Event) `js:"onReady"`
-	OnStateChange func(*Event) `js:"onStateChange"`
+	OnReady                 func(*Event) `js:"onReady"`
+	OnStateChange           func(*Event) `js:"onStateChange"`
+	OnPlaybackQualityChange func(*Event) `js:"onPlaybackQualityChange"`
+	OnPlaybackRateChange    func(*Event) `js:"onPlaybackRateChange"`
+	OnError                 func(*Event) `js:"onError"`
+	OnAPIChange             func(*Event) `js:"onApiChange"`
 }
 
 // The player parameter documented at
 // https://developers.google.com/youtube/player_parameters
-type playerParameters struct {
+type playerParams struct {
 	*js.Object
-	Autoplay       int      `js:"autoplay"`
-	CcLoadPolicy   int      `js:"cc_load_policy"`
-	Color          string   `js:"color"`
-	Controls       string   `js:"controls"`
-	DisableKB      int      `js:"disablekb"`
-	EnableJsAPI    int      `js:"enablejsapi"`
-	End            int      `js:"end"`
-	Fs             int      `js:"fs"`
-	Hl             string   `js:"hl"`
-	IvLoadPolicy   int      `js:"iv_load_policy"`
-	List           string   `js:"list"`
-	ListType       ListType `js:"listType"`
-	Loop           int      `js:"loop"`
-	ModestBranding int      `js:"modestbranding"`
-	Origin         string   `js:"origin"`
-	Playlist       []string `js:"playlist"`
-	PlaysInline    int      `js:"playsinline"`
-	ShowInfo       int      `js:"showinfo"`
-	Start          int      `js:"start"`
-	WidgetReferrer string   `js:"widget_referrer"`
+	Autoplay       int             `js:"autoplay"`
+	CcLoadPolicy   int             `js:"cc_load_policy"`
+	Color          ProgessBarColor `js:"color"`
+	Controls       ControlsMode    `js:"controls"`
+	DisableKB      int             `js:"disablekb"`
+	EnableJsAPI    int             `js:"enablejsapi"`
+	End            int             `js:"end"`
+	Fs             int             `js:"fs"`
+	Hl             string          `js:"hl"`
+	IvLoadPolicy   int             `js:"iv_load_policy"`
+	List           string          `js:"list"`
+	ListType       ListType        `js:"listType"`
+	Loop           int             `js:"loop"`
+	ModestBranding int             `js:"modestbranding"`
+	Origin         string          `js:"origin"`
+	Playlist       []string        `js:"playlist"`
+	PlaysInline    int             `js:"playsinline"`
+	ShowInfo       int             `js:"showinfo"`
+	Start          int             `js:"start"`
+	WidgetReferrer string          `js:"widget_referrer"`
 }
 
-type loadByIDOptions struct {
+// LoadByIDOptions represents an argument for Player.LoadVideoByID2(arg)
+// and Player.CueVideoByID2(arg)
+type LoadByIDOptions struct {
 	*js.Object
 	VideoID          string  `js:"videoId"`
 	StartSeconds     float64 `js:"startSeconds"`
@@ -134,13 +160,16 @@ type loadByIDOptions struct {
 	SuggestedQuality Quality `js:"suggestedQuality"`
 }
 
-func NewLoadByIDOptions() *loadByIDOptions {
-	return &loadByIDOptions{
+// NewLoadByIDOptions prepares an argument for
+// Player.LoadVideoByID2(arg) and Player.CueVideoByID2(arg)
+func NewLoadByIDOptions() *LoadByIDOptions {
+	return &LoadByIDOptions{
 		Object: newObj(),
 	}
 }
 
-type loadByURLOptions struct {
+// LoadByURLOptions represents an argument for Player.LoadVideoByUrl2(arg)
+type LoadByURLOptions struct {
 	*js.Object
 	MediaContentURL  string  `js:"mediaContentUrl"`
 	StartSeconds     float64 `js:"startSeconds"`
@@ -148,30 +177,35 @@ type loadByURLOptions struct {
 	SuggestedQuality Quality `js:"suggestedQuality"`
 }
 
-func NewLoadByURLOptions() *loadByURLOptions {
-	return &loadByURLOptions{
+// NewLoadByURLOptions returns a prepared argument for Player.LoadeVideoByUrl2(arg)
+func NewLoadByURLOptions() *LoadByURLOptions {
+	return &LoadByURLOptions{
 		Object: newObj(),
 	}
 }
 
-type cuePlaylistOptions struct {
+// CuePlaylistOptions represents an argument for Player.CuePlaylist2(arg)
+type CuePlaylistOptions struct {
 	*js.Object
-	ListType         ListType `js:"listType"`
-	List             string   `js:"list"`
-	Index            int      `js:"index"`
-	startSeconds     float64  `js:"startSeconds"`
-	SuggestedQuality Quality  `js:"suggestedQuality"`
+	ListType ListType `js:"listType"`
+	// the ID of the list
+	List             string  `js:"list"`
+	Index            int     `js:"index"`
+	startSeconds     float64 `js:"startSeconds"`
+	SuggestedQuality Quality `js:"suggestedQuality"`
 }
 
-func NewCuePlaylistOptions() *cuePlaylistOptions {
-	return &cuePlaylistOptions{
+// NewCuePlaylistOptions prepares an argument for Player.CuePlaylist2(arg)
+func NewCuePlaylistOptions() *CuePlaylistOptions {
+	return &CuePlaylistOptions{
 		Object: newObj(),
 	}
 }
 
-// Player creates a new youtube player by replacing the
+// NewPlayer creates a new youtube player by replacing the
 // provided iframe with the id of iframeId
-func NewPlayer(iframeID string, props *properties) *Player {
+// This call is equivalent to new YT.Player(id, props)
+func NewPlayer(iframeID string, props *Properties) *Player {
 	np := js.Global.Get("YT").Get("Player").New(iframeID, props.Object)
 
 	return &Player{
@@ -185,7 +219,7 @@ func (p *Player) LoadVideoByID(vid string, startSec float64, q Quality) {
 	p.Call("loadVideoById", vid, startSec, q)
 }
 
-func (p *Player) LoadVideoByID2(params *loadByIDOptions) {
+func (p *Player) LoadVideoByID2(params *LoadByIDOptions) {
 	p.Call("loadVideoById", params)
 }
 
@@ -193,7 +227,7 @@ func (p *Player) CueVideoByID(vid string, startSec float64, q Quality) {
 	p.Call("cueVideoById", vid, startSec, q)
 }
 
-func (p *Player) CueVideoByID2(params *loadByIDOptions) {
+func (p *Player) CueVideoByID2(params *LoadByIDOptions) {
 	p.Call("cueVideoById", params)
 }
 
@@ -201,7 +235,7 @@ func (p *Player) LoadVideoByURL(url string, startSec float64, q Quality) {
 	p.Call("loadVideoByUrl", url, startSec, q)
 }
 
-func (p *Player) LoadVideoByURL2(params *loadByURLOptions) {
+func (p *Player) LoadVideoByURL2(params *LoadByURLOptions) {
 	p.Call("loadVideoByUrl", params)
 }
 
@@ -209,7 +243,7 @@ func (p *Player) CuePlaylist(ids []string, index int, startSec float64, q Qualit
 	p.Call("cuePlaylist", ids, index, startSec, q)
 }
 
-func (p *Player) CuePlaylist2(params *cuePlaylistOptions) {
+func (p *Player) CuePlaylist2(params *CuePlaylistOptions) {
 	p.Call("cuePlaylist", params)
 }
 
@@ -217,7 +251,7 @@ func (p *Player) LoadPlaylist(ids []string, index int, startSec float64, q Quali
 	p.Call("cuePlaylist", ids, index, startSec, q)
 }
 
-func (p *Player) LoadPlaylist2(params *cuePlaylistOptions) {
+func (p *Player) LoadPlaylist2(params *CuePlaylistOptions) {
 	p.Call("cuePlaylist", params)
 }
 
