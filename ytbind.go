@@ -96,8 +96,8 @@ type Properties struct {
 	Width        int           `js:"width"`
 	Height       int           `js:"height"`
 	VideoID      string        `js:"videoId"`
-	PlayerVars   *playerParams `js:"playerVars"`
-	PlayerEvents *playerEvents `js:"events"`
+	PlayerVars   *PlayerParams `js:"playerVars"`
+	PlayerEvents *PlayerEvents `js:"events"`
 }
 
 func newObj() *js.Object {
@@ -107,14 +107,16 @@ func newObj() *js.Object {
 // NewProperties creates a new Property JS object
 func NewProperties() *Properties {
 	props := &Properties{Object: newObj()}
-	vars := &playerParams{Object: newObj()}
-	eves := &playerEvents{Object: newObj()}
+	vars := &PlayerParams{Object: newObj()}
+	eves := &PlayerEvents{Object: newObj()}
 	props.PlayerVars = vars
 	props.PlayerEvents = eves
 	return props
 }
 
-type playerEvents struct {
+// PlayerEvents contains a set of callbacks assigned at the creation of the
+// player. This struct's fields correspond to each youtube.EventType
+type PlayerEvents struct {
 	*js.Object
 	OnReady                 func(*Event) `js:"onReady"`
 	OnStateChange           func(*Event) `js:"onStateChange"`
@@ -124,9 +126,9 @@ type playerEvents struct {
 	OnAPIChange             func(*Event) `js:"onApiChange"`
 }
 
-// The player parameter documented at
+// PlayerParams represents the player parameter documented at
 // https://developers.google.com/youtube/player_parameters
-type playerParams struct {
+type PlayerParams struct {
 	*js.Object
 	Autoplay       int             `js:"autoplay"`
 	CcLoadPolicy   int             `js:"cc_load_policy"`
