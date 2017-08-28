@@ -56,14 +56,15 @@ const (
 )
 
 //
-type PlayerStatus int
+type PlayerState int
 
 const (
-	Unstarted PlayerStatus = iota - 1
+	Unstarted PlayerState = iota - 1
 	Ended
 	Playing
 	Paused
 	Buffering
+	_
 	VideoCued
 )
 
@@ -347,8 +348,8 @@ func (p *Player) VideoLoadedFraction() float64 {
 	return p.Call("getVideoLoadedFraction").Float()
 }
 
-func (p *Player) PlayerState() PlayerStatus {
-	return PlayerStatus(p.Call("getPlayerState").Int())
+func (p *Player) PlayerState() PlayerState {
+	return PlayerState(p.Call("getPlayerState").Int())
 }
 
 func (p *Player) CurrentTime() float64 {
