@@ -5,21 +5,19 @@ Gopherjs Bindings for Youtube's Iframe API documented @ https://developers.googl
 The test is being written.
 
 
-Usage: check the example package
+Usage:
+Sample code is in the example package
 
 ```go
 
-const (
-	youtubeIframeAPISrc = "https://www.youtube.com/iframe_api"
-	playerID            = "playerID"
-)
+const playerID            = "playerID"
 
 func main() {
 	// 1. Add the Youtube script to your header
-	YourAddScriptFunc(youtubeIframeAPISrc)
+	yourAddScriptFunc(youtubeIframeAPISrc)
 
 	// 2. Place the player container as a div in your html with a predefined id
-	var app = &Body{}
+	var app = &App{playerID: playerID}
 	vecty.RenderBody(app)
 
 	// 3. Initialize the player when the Youtube API's done loading
@@ -34,22 +32,9 @@ func main() {
 		props.PlayerEvents.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()
 		}
-		// Cache the created player
+		// Create and cache the created player
 		app.player = youtube.NewPlayer(playerID, props)
 	})
-}
-
-type Body struct {
-	vecty.Core
-	player *youtube.Player
-}
-
-func (b *Body) Render() *vecty.HTML {
-	return elem.Body(
-		elem.Div(
-			prop.ID(playerID),
-		),
-	)
 }
 
 ```

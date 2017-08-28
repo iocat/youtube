@@ -15,11 +15,11 @@ const (
 )
 
 func main() {
-	// 1. add the Youtube script to your header
-	AddScript(youtubeIframeAPISrc)
+	// 1. Add the Youtube script to your header
+	yourAddScriptFunc(youtubeIframeAPISrc)
 
 	// 2. Place the player container as a div in your html with a predefined id
-	var app = &Body{}
+	var app = &App{playerID: playerID}
 	vecty.RenderBody(app)
 
 	// 3. Initialize the player when the Youtube API's done loading
@@ -34,25 +34,26 @@ func main() {
 		props.PlayerEvents.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()
 		}
-		// Cache the created player
+		// Create and cache the created player
 		app.player = youtube.NewPlayer(playerID, props)
 	})
 }
 
-type Body struct {
+type App struct {
 	vecty.Core
-	player *youtube.Player
+	player   *youtube.Player
+	playerID string
 }
 
-func (b *Body) Render() *vecty.HTML {
+func (b *App) Render() *vecty.HTML {
 	return elem.Body(
 		elem.Div(
-			prop.ID(playerID),
+			prop.ID(b.playerID),
 		),
 	)
 }
 
-func AddScript(url string) {
+func yourAddScriptFunc(url string) {
 	script := js.Global.Get("document").Call("createElement", "script")
 	script.Set("src", url)
 	script.Set("type", "text/javascript")
