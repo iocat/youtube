@@ -1,13 +1,13 @@
-# youtube
-Gopherjs Bindings for Youtube's Iframe API documented @ https://developers.google.com/youtube/iframe_api_reference
+package main
 
-#### This binding library is currently under development. There will be breaking changes. 
-The test is being written.
+import (
+	"github.com/gopherjs/gopherjs/js"
+	"github.com/gopherjs/vecty"
+	"github.com/gopherjs/vecty/elem"
+	"github.com/gopherjs/vecty/prop"
 
-
-Usage: check the example package
-
-```go
+	"github.com/iocat/youtube"
+)
 
 const (
 	youtubeIframeAPISrc = "https://www.youtube.com/iframe_api"
@@ -15,8 +15,8 @@ const (
 )
 
 func main() {
-	// 1. Add the Youtube script to your header
-	YourAddScriptFunc(youtubeIframeAPISrc)
+	// 1. add the Youtube script to your header
+	AddScript(youtubeIframeAPISrc)
 
 	// 2. Place the player container as a div in your html with a predefined id
 	var app = &Body{}
@@ -52,7 +52,9 @@ func (b *Body) Render() *vecty.HTML {
 	)
 }
 
-```
-
-
-Please feel free to contribute!
+func AddScript(url string) {
+	script := js.Global.Get("document").Call("createElement", "script")
+	script.Set("src", url)
+	script.Set("type", "text/javascript")
+	js.Global.Get("document").Get("head").Call("appendChild", script)
+}
