@@ -6,7 +6,7 @@ The test is being written.
 
 
 Usage:
-Sample code is in the example package
+Sample code is in the [example package](https://github.com/iocat/youtube/blob/master/example/main.go)
 
 ```go
 
@@ -27,7 +27,7 @@ func main() {
 		var props = youtube.NewProperties()
 		props.Width = 640
 		props.Height = 390
-		props.VideoID = "b-tAiOVMYFY"
+		props.VideoID = "dQw4w9WgXcQ"
 		props.PlayerVars.EnableJsAPI = 1
 		props.PlayerEvents.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()

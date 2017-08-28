@@ -29,7 +29,7 @@ func main() {
 		var props = youtube.NewProperties()
 		props.Width = 640
 		props.Height = 390
-		props.VideoID = "b-tAiOVMYFY"
+		props.VideoID = "dQw4w9WgXcQ"
 		props.PlayerVars.EnableJsAPI = 1
 		props.PlayerEvents.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()
