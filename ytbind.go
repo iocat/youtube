@@ -90,7 +90,7 @@ type Player struct {
 }
 
 // Properties represents a set of video properties feeded to NewPlayer(id, properties) call
-// to create the player
+// to create the player. NewProperties() is recommended to create the properties.
 type Properties struct {
 	*js.Object
 	Width        int           `js:"width"`
@@ -105,6 +105,7 @@ func newObj() *js.Object {
 }
 
 // NewProperties creates a new Property JS object
+// with all inner objects properly initialized
 func NewProperties() *Properties {
 	props := &Properties{Object: newObj()}
 	vars := &PlayerParams{Object: newObj()}
@@ -164,6 +165,7 @@ type LoadByIDOptions struct {
 
 // NewLoadByIDOptions prepares an argument for
 // Player.LoadVideoByID2(arg) and Player.CueVideoByID2(arg)
+// with all inner objects properly initialized
 func NewLoadByIDOptions() *LoadByIDOptions {
 	return &LoadByIDOptions{
 		Object: newObj(),
@@ -180,6 +182,7 @@ type LoadByURLOptions struct {
 }
 
 // NewLoadByURLOptions returns a prepared argument for Player.LoadeVideoByUrl2(arg)
+// with all inner objects properly initialized
 func NewLoadByURLOptions() *LoadByURLOptions {
 	return &LoadByURLOptions{
 		Object: newObj(),
@@ -198,6 +201,7 @@ type CuePlaylistOptions struct {
 }
 
 // NewCuePlaylistOptions prepares an argument for Player.CuePlaylist2(arg)
+// with all inner objects properly initialized
 func NewCuePlaylistOptions() *CuePlaylistOptions {
 	return &CuePlaylistOptions{
 		Object: newObj(),
