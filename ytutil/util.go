@@ -1,4 +1,4 @@
-// Package ytutil contains utility functions for setting the Youtube Iframe API
+// Package ytutil contains utility functions for setting up the Youtube Iframe API
 // The application, however, can be set up without using this package.
 package ytutil
 
