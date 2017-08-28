@@ -89,15 +89,15 @@ type Player struct {
 	*js.Object
 }
 
-// Properties represents a set of video properties feeded to NewPlayer(id, properties) call
+// Properties represents a set of video properties feeded to NewPlayer(id, properties)
 // to create the player. NewProperties() is recommended to create the properties.
 type Properties struct {
 	*js.Object
-	Width        int           `js:"width"`
-	Height       int           `js:"height"`
-	VideoID      string        `js:"videoId"`
-	PlayerVars   *PlayerParams `js:"playerVars"`
-	PlayerEvents *PlayerEvents `js:"events"`
+	Width      int           `js:"width"`
+	Height     int           `js:"height"`
+	VideoID    string        `js:"videoId"`
+	PlayerVars *PlayerParams `js:"playerVars"`
+	Events     *PlayerEvents `js:"events"`
 }
 
 func newObj() *js.Object {
@@ -111,7 +111,7 @@ func NewProperties() *Properties {
 	vars := &PlayerParams{Object: newObj()}
 	eves := &PlayerEvents{Object: newObj()}
 	props.PlayerVars = vars
-	props.PlayerEvents = eves
+	props.Events = eves
 	return props
 }
 

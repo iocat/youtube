@@ -45,7 +45,7 @@ func main() {
 		props.Height = 390
 		props.VideoID = "b-tAiOVMYFY"
 		props.PlayerVars.EnableJsAPI = 1
-		props.PlayerEvents.OnReady = func(e *youtube.Event) {
+		props.Events.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()
 		}
 		app.player = youtube.NewPlayer(playerID, props)
