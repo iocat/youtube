@@ -328,6 +328,9 @@ func (p *Player) SetPlaybackRate(suggestedRate float64) {
 // is available
 func (p *Player) AvailablePlaybackRates() []float64 {
 	rates := p.Call("getAvailablePlaybackRates")
+	if rates == js.Undefined || rates == nil {
+		return nil
+	}
 	length := rates.Length()
 	res := make([]float64, 0, length)
 	for i := 0; i < length; i++ {
@@ -366,6 +369,9 @@ func (p *Player) SetPlaybackQuality(suggested Quality) {
 
 func (p *Player) AvailableQualityLevels() []Quality {
 	aql := p.Call("getAvailableQualityLevels")
+	if aql == js.Undefined || aql == nil {
+		return nil
+	}
 	q := make([]Quality, 0, aql.Length())
 	for i := 0; i < aql.Length(); i++ {
 		q = append(q, Quality(aql.Index(i).String()))
@@ -377,7 +383,7 @@ func (p *Player) Duration() float64 {
 	return p.Call("getDuration").Float()
 }
 
-func (p *Player) VideoUrl() string {
+func (p *Player) VideoURL() string {
 	return p.Call("getVideoUrl").String()
 }
 
@@ -389,6 +395,9 @@ func (p *Player) VideoEmbedCode() string {
 
 func (p *Player) Playlist() []string {
 	ids := p.Call("getPlaylist")
+	if ids == js.Undefined || ids == nil {
+		return nil
+	}
 	res := make([]string, 0, ids.Length())
 	for i := 0; i < ids.Length(); i++ {
 		res = append(res, ids.Index(i).String())
