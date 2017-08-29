@@ -197,7 +197,7 @@ type CuePlaylistOptions struct {
 	// the ID of the list
 	List             string  `js:"list"`
 	Index            int     `js:"index"`
-	startSeconds     float64 `js:"startSeconds"`
+	StartSeconds     float64 `js:"startSeconds"`
 	SuggestedQuality Quality `js:"suggestedQuality"`
 }
 
