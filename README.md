@@ -1,9 +1,7 @@
 # youtube
 Gopherjs Bindings for Youtube's Iframe API documented @ https://developers.google.com/youtube/iframe_api_reference
 
-#### This binding library is currently under development. There will be breaking changes. 
-The test is being written.
-
+Test and example page can be accessed by gopherjs serve.
 
 Usage:
 Sample code is in the [example package](https://github.com/iocat/youtube/blob/master/example/main.go)

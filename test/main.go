@@ -27,10 +27,12 @@ type TestApp struct {
 
 	// The frequency in miliseconds with which the stats is updated
 	StatUpdateFreq int
-	player         *youtube.Player
-	seekToSec      float64
-	volumeToSet    int
 
+	player      *youtube.Player
+	seekToSec   float64
+	volumeToSet int
+
+	// Load Video Controller's input
 	idToLoad        string
 	startsSecond    float64
 	selectedQuality youtube.Quality
