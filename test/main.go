@@ -19,16 +19,21 @@ import (
 
 const (
 	playerID = "player"
-	// statUpdateFrequency in miliseconds (use js default time unit)
-	statUpdateFrequency = 500
 )
 
 // TestApp is the global application state container and a UI component
 type TestApp struct {
 	vecty.Core
-	player      *youtube.Player
-	seekToSec   float64
-	volumeToSet int
+
+	// The frequency in miliseconds with which the stats is updated
+	StatUpdateFreq int
+	player         *youtube.Player
+	seekToSec      float64
+	volumeToSet    int
+
+	idToLoad        string
+	startsSecond    float64
+	selectedQuality youtube.Quality
 
 	// decide to show stats or not ( only shown when the player is readily initialized)
 	showStat bool
@@ -52,7 +57,7 @@ func (a *TestApp) seekTo(e *vecty.Event) {
 
 func (a *TestApp) controllerPlay() *vecty.HTML {
 	return elem.Div(
-		prop.Class("ui labeled icon basic button "),
+		prop.Class("ui labeled icon tiny basic button"),
 		elem.Italic(prop.Class("play icon")),
 		vecty.Text("PlayVideo()"),
 		event.Click(a.play),
@@ -61,7 +66,7 @@ func (a *TestApp) controllerPlay() *vecty.HTML {
 
 func (a *TestApp) controllerPause() *vecty.HTML {
 	return elem.Div(
-		prop.Class("ui labeled icon basic button "),
+		prop.Class("ui labeled icon tiny basic button "),
 		elem.Italic(prop.Class("pause icon")),
 		vecty.Text("PauseVideo()"),
 		event.Click(a.pause),
@@ -70,7 +75,7 @@ func (a *TestApp) controllerPause() *vecty.HTML {
 
 func (a *TestApp) controllerStop() *vecty.HTML {
 	return elem.Div(
-		prop.Class("ui labeled icon basic button "),
+		prop.Class("ui labeled icon tiny basic button "),
 		elem.Italic(prop.Class("stop icon")),
 		vecty.Text("StopVideo()"),
 		event.Click(a.stop),
@@ -79,7 +84,7 @@ func (a *TestApp) controllerStop() *vecty.HTML {
 
 func (a *TestApp) controllerSeekTo() *vecty.HTML {
 	return elem.Div(
-		prop.Class("ui action input"),
+		prop.Class("ui action tiny input"),
 		elem.Input(
 			prop.Type(prop.TypeText),
 			prop.Value(strconv.FormatFloat(a.seekToSec, 'f', -1, 64)),
@@ -103,7 +108,7 @@ func (a *TestApp) setVolume(e *vecty.Event) {
 
 func (a *TestApp) controllerVolume() *vecty.HTML {
 	return elem.Div(
-		prop.Class("ui action input"),
+		prop.Class("ui action tiny input"),
 		elem.Input(
 			prop.Type(prop.TypeText),
 			prop.Value(strconv.FormatInt(int64(a.volumeToSet), 10)),
@@ -122,17 +127,74 @@ func (a *TestApp) controllerVolume() *vecty.HTML {
 	)
 }
 
-func stat(desc string, value string) *vecty.HTML {
+func (a *TestApp) loadVideoByID(e *vecty.Event) {
+	a.player.LoadVideoByID(a.idToLoad, a.startsSecond, a.selectedQuality)
+}
+
+func (a *TestApp) controllerLoadVideoByID() *vecty.HTML {
+	// returns a list of options in markup
+	getQualityOptions := func() []vecty.MarkupOrComponentOrHTML {
+		qualities := []youtube.Quality{youtube.Small, youtube.Medium, youtube.Large, youtube.HD720, youtube.HD1080, youtube.HighRes}
+		qhtml := make([]vecty.MarkupOrComponentOrHTML, 0, len(qualities))
+		for _, quality := range qualities {
+			chosen := false
+			if quality == a.selectedQuality {
+				chosen = true
+			}
+			qhtml = append(qhtml,
+				elem.Option(
+					vecty.If(chosen, vecty.Property("selected", true)),
+					prop.Value(string(quality)),
+					vecty.Text(string(quality)),
+				),
+			)
+		}
+		return qhtml
+	}
+
 	return elem.Div(
-		prop.Class(" statistic"),
-		elem.Div(
-			prop.Class("value"),
-			vecty.Text(value),
+		prop.Class("ui action input"),
+		elem.Input(
+			prop.Type(prop.TypeText),
+			prop.Value(a.idToLoad),
+			prop.Placeholder("o_Ay_iDRAbc"),
+			event.Input(func(e *vecty.Event) {
+				a.idToLoad = e.Target.Get("value").String()
+			}),
 		),
-		elem.Div(
-			prop.Class("label"),
+		elem.Input(
+			prop.Type(prop.TypeText),
+			prop.Value(strconv.FormatFloat(a.startsSecond, 'f', 0, 64)),
+			prop.Placeholder("0"),
+			event.Input(func(e *vecty.Event) {
+				a.startsSecond, _ = strconv.ParseFloat(
+					e.Target.Get("value").String(), 64)
+			}),
+		),
+		elem.Select(
+			append(
+				getQualityOptions(),
+				prop.Class("ui compact selection dropdown"),
+				event.Change(func(e *vecty.Event) {
+					a.selectedQuality = youtube.Quality(e.Target.Get("value").String())
+				}),
+			)...,
+		),
+		elem.Button(
+			prop.Class("ui right button"),
+			vecty.Text("LoadVideoByID()"),
+			event.Click(a.loadVideoByID),
+		),
+	)
+}
+
+func stat(desc string, value string) *vecty.HTML {
+	return elem.TableRow(
+		elem.TableData(
+			prop.Class(""),
 			vecty.Text(desc),
 		),
+		elem.TableData(vecty.Text(value)),
 	)
 }
 
@@ -178,61 +240,128 @@ func (a *TestApp) videoLoadedFraction() string {
 	return strconv.FormatFloat(a.player.VideoLoadedFraction(), 'f', 2, 64)
 }
 
-func (a *TestApp) stats() *vecty.HTML {
-	return elem.Div(
-		prop.Class("ui mini statistics"),
-		stat("Volume()", a.getVolume()),
-		stat("IsMuted()", a.getMuted()),
-		stat("PlayerState()", a.playerState()),
-		stat("PlaybackRate()", a.playbackRate()),
-		stat("VideoLoadedFraction()", a.videoLoadedFraction()),
+func (a *TestApp) currentTime() string {
+	return strconv.FormatFloat(a.player.CurrentTime(), 'f', 2, 64)
+}
+
+func (a *TestApp) playbackQuality() string {
+	return string(a.player.PlaybackQuality())
+}
+
+func (a *TestApp) duration() string {
+	return strconv.FormatFloat(a.player.Duration(), 'f', 2, 64)
+}
+
+func (a *TestApp) availableQualityLevels() string {
+	convert := func(qs []youtube.Quality) []string {
+		res := make([]string, 0, len(qs))
+		for _, q := range qs {
+			res = append(res, string(q))
+		}
+		return res
+	}
+	return strings.Join(
+		append(
+			[]string{"["},
+			strings.Join(convert(a.player.AvailableQualityLevels()), ", "),
+			"]",
+		), " ",
+	)
+
+}
+
+func (a *TestApp) playlist() string {
+	return strings.Join(
+		append([]string{"["}, strings.Join(a.player.Playlist(), ", "), "]"),
+		" ",
 	)
 }
 
-var once = &sync.Once{}
+func (a *TestApp) playlistIndex() string {
+	return strconv.FormatInt(int64(a.player.PlaylistIndex()), 10)
+}
 
-func (a *TestApp) Render() *vecty.HTML {
-	once.Do(func() {
-		// update stat every 1 second
-		js.Global.Call("setInterval", func() { vecty.Rerender(a) }, statUpdateFrequency) // reset stat
-	})
-
-	var statsDiv *vecty.HTML
-	if a.showStat {
-		statsDiv = a.stats()
-	}
-	return elem.Body(
-		elem.Div(
-			prop.Class("ui center aligned container"),
-			elem.Div(
-				prop.ID(playerID),
+func (a *TestApp) stats() *vecty.HTML {
+	return elem.Table(
+		prop.Class("ui padded small red table"),
+		elem.TableHead(
+			elem.TableRow(
+				elem.TableHeader(
+					vecty.Text("Caller (player.*)"),
+				),
+				elem.TableHeader(
+					vecty.Text("Results"),
+				),
 			),
 		),
-		elem.Heading4(
-			prop.Class("ui horizontal divider header"),
-			elem.Italic(
-				prop.Class(" setting icon"),
+		elem.TableBody(
+			stat("Volume()", a.getVolume()),
+			stat("IsMuted()", a.getMuted()),
+			stat("PlayerState()", a.playerState()),
+			stat("PlaybackRate()", a.playbackRate()),
+			stat("VideoLoadedFraction()", a.videoLoadedFraction()),
+			stat("CurrentTime()", a.currentTime()),
+			stat("PlaybackQuality()", a.playbackQuality()),
+			stat("Duration()", a.duration()),
+			stat("VideoURL()", a.player.VideoURL()),
+			stat("VideoEmbedCode()", a.player.VideoEmbedCode()),
+			stat("AvailableQualityLevels()", a.availableQualityLevels()),
+			stat("Playlist()", a.playlist()),
+			stat("PlaylistIndex()", a.playlistIndex()),
+			stat("Iframe()", a.player.Iframe().String()),
+		),
+	)
+}
+
+func (a *TestApp) getControllersColumn() *vecty.HTML {
+	return elem.Div(
+		prop.Class("column"),
+		elem.Div(
+			prop.Class("ui basic segment"),
+			elem.Heading4(
+				prop.Class("ui horizontal divider header"),
+				elem.Italic(
+					prop.Class(" setting icon"),
+				),
+				vecty.Text("Controls"),
 			),
-			vecty.Text("Controls"),
 		),
 		elem.Div(
-			prop.Class("ui fluid center aligned container"),
+			prop.Class("ui segments"),
 			elem.Div(
-				prop.Class("ui container"),
+				prop.Class("ui segment"),
 				a.controllerPlay(),
 				a.controllerPause(),
 				a.controllerStop(),
 			),
 			elem.Div(
-				prop.Class("ui container"),
+				prop.Class("ui segment"),
 				a.controllerSeekTo(),
 			),
 			elem.Div(
-				prop.Class("ui container"),
+				prop.Class("ui segment"),
 				a.controllerVolume(),
 			),
+			elem.Div(
+				prop.Class("ui segment"),
+				a.controllerLoadVideoByID(),
+			),
 		),
-		vecty.If(statsDiv != nil,
+	)
+}
+
+func (a *TestApp) getStatsColumn() *vecty.HTML {
+	var statsDiv *vecty.HTML
+	if a.showStat {
+		statsDiv = a.stats()
+	}
+	if statsDiv == nil {
+		return nil
+	}
+	return elem.Div(
+		prop.Class("column"),
+		elem.Div(
+			prop.Class("ui basic segment"),
 			elem.Heading4(
 				prop.Class("ui horizontal divider header"),
 				elem.Italic(
@@ -241,15 +370,45 @@ func (a *TestApp) Render() *vecty.HTML {
 				vecty.Text(
 					strings.Join([]string{
 						"Stats (every ",
-						strconv.FormatInt(statUpdateFrequency, 10),
-						" miliseconds)",
+						strconv.FormatInt(int64(a.StatUpdateFreq), 10),
+						" milisecond)",
 					}, ""),
 				),
 			),
 			elem.Div(
-				prop.Class("ui fluid center aligned container"),
+				prop.Class("ui container"),
 				statsDiv,
 			),
+		),
+	)
+}
+
+var once = &sync.Once{}
+
+func (a *TestApp) Render() *vecty.HTML {
+	once.Do(func() {
+		a.selectedQuality = youtube.Large
+		var updFrq int
+		if a.StatUpdateFreq == 0 {
+			updFrq = 500
+		} else {
+			updFrq = a.StatUpdateFreq
+		}
+		// update stat every 1 second
+		js.Global.Call("setInterval", func() { vecty.Rerender(a) }, updFrq) // reset stat
+	})
+
+	return elem.Body(
+		elem.Div(
+			prop.Class("two column stackable ui grid"),
+			elem.Div(
+				prop.Class("column"),
+				elem.Div(
+					prop.ID(playerID),
+				),
+			),
+			a.getControllersColumn(),
+			a.getStatsColumn(),
 		),
 	)
 }
@@ -280,13 +439,15 @@ func setupSemanticUI() {
 func main() {
 	setupSemanticUI()
 
-	app := &TestApp{}
+	app := &TestApp{
+		StatUpdateFreq: 400,
+	}
 	app.showStat = false
 	vecty.RenderBody(app)
 	ytutil.OnLoaded(func() {
 		var props = youtube.NewProperties()
 		props.Width = 640
-		props.Height = 390
+		props.Height = 360
 		props.VideoID = "b-tAiOVMYFY"
 		props.PlayerVars.EnableJsAPI = 1
 		props.Events.OnReady = func(e *youtube.Event) {
