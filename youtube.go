@@ -55,7 +55,33 @@ const (
 	HighRes Quality = "highres"
 )
 
-//
+// Error represents the errors returned OnError event
+type Error int
+
+const (
+	ErrInvalidParameters Error = 2
+	ErrNonHTML5          Error = 5
+	ErrVideoNotFound     Error = 100
+	ErrNotForEmbedded    Error = 101
+	err101InDisguise     Error = 150
+)
+
+func (err Error) String() string {
+	switch err {
+	case ErrInvalidParameters:
+		return `The request contains an invalid parameter value.`
+	case ErrNonHTML5:
+		return `The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.`
+	case ErrVideoNotFound:
+		return "The video requested was not found."
+	case ErrNotForEmbedded:
+		return "The owner of the requested video does not allow it to be played in embedded players."
+	default:
+		return "unknown"
+	}
+}
+
+// PlayerState represents the youtube player's state
 type PlayerState int
 
 const (
@@ -423,4 +449,18 @@ func (p *Player) Iframe() *js.Object {
 
 func (p *Player) Destroy() {
 	p.Call("destroy")
+}
+
+type VideoData struct {
+	*js.Object
+	VideoID      string  `js:"video_id"`
+	Author       string  `js:"author"`
+	Title        string  `js:"title"`
+	VideoQuality Quality `js:"video_quality"`
+}
+
+func (p *Player) VideoData() *VideoData {
+	return &VideoData{
+		Object: p.Call("getVideoData"),
+	}
 }

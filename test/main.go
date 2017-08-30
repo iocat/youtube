@@ -283,6 +283,16 @@ func (a *TestApp) playlistIndex() string {
 	return strconv.FormatInt(int64(a.player.PlaylistIndex()), 10)
 }
 
+func (a *TestApp) videoData() string {
+	data := a.player.VideoData()
+	return strings.Join([]string{
+		data.Author,
+		data.Title,
+		data.VideoID,
+		string(data.VideoQuality),
+	}, " | ")
+}
+
 func (a *TestApp) stats() *vecty.HTML {
 	return elem.Table(
 		prop.Class("ui padded small red table"),
@@ -311,6 +321,7 @@ func (a *TestApp) stats() *vecty.HTML {
 			stat("Playlist()", a.playlist()),
 			stat("PlaylistIndex()", a.playlistIndex()),
 			stat("Iframe()", a.player.Iframe().String()),
+			stat("VideoData()", a.videoData()),
 		),
 	)
 }
@@ -454,6 +465,7 @@ func main() {
 		props.PlayerVars.EnableJsAPI = 1
 		props.Events.OnReady = func(e *youtube.Event) {
 			e.Target.PlayVideo()
+			println(e.Target, "Player object for testing")
 		}
 
 		app.player = youtube.NewPlayer(playerID, props)
