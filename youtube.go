@@ -175,7 +175,7 @@ type PlayerParams struct {
 	Origin         string          `js:"origin"`
 	Playlist       []string        `js:"playlist"`
 	PlaysInline    int             `js:"playsinline"`
-	Related        int             `js:"rel"`
+	Rel            int             `js:"rel"`
 	ShowInfo       int             `js:"showinfo"`
 	Start          int             `js:"start"`
 	WidgetReferrer string          `js:"widget_referrer"`
